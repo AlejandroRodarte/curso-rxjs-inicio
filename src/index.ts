@@ -1,4 +1,4 @@
-import { Observer, Observable, Subscriber, Subscription } from 'rxjs';
+import { Observer, Observable, Subscriber, Subscription, interval, Subject } from 'rxjs';
 
 const observer: Observer<number> = {
     next: (value: number) => console.log(`next: ${value}`),
@@ -6,41 +6,26 @@ const observer: Observer<number> = {
     complete: () => console.info('completado')
 };
 
-const intervalo$ = new Observable<number>((sub: Subscriber<number>) => {
-
-    let counter = 0;
-
-    const interval: NodeJS.Timeout = setInterval(() => {
-        sub.next(counter++);
-        console.log(counter);
-    }, 1000);
-
-    // cuando se llama complete, se llama a la funcion de purga
-    setTimeout(() => sub.complete(), 2500)
-
-    // cuando el observable muera, podemos correr un procedimiento para hacer la
-    // 'limpia' del observable; util para evitar fugas de memoria
+const interval$ = new Observable<number>((sub: Subscriber<number>) => {
+    const interval = setInterval(() => sub.next(Math.random()), 3000);
     return () => clearInterval(interval);
-
 });
 
-const subscription1: Subscription = intervalo$.subscribe(observer);
-const subscription2: Subscription = intervalo$.subscribe(observer);
-const subscription3: Subscription = intervalo$.subscribe(observer);
+// subject: un tipo de observable especial
+// caracteristicas
+// 1. casteo multiple: muchas suscripciones estaran sujetas a este mismo Subject; sirve para transmitir la misma info
+// 2. tambien es un observer
+// 3. next, error y complete 
+const subject$ = new Subject<number>();
 
-// add() permite encadenar observables para la desuscripcion mas sencilla
-subscription1.add(subscription2).add(subscription3);
+// ejemplo de 2. el subject puede funcionar como un observer
+// para que nos sirve?
+interval$.subscribe(subject$);
 
-// cancelar la subscripcion
-setTimeout(() => {
+// en vez de subscribirnos al observable directamente, nos subscribimos al subject
+// para recibir la misma informacion
+const subscription1 = subject$.subscribe((num: number) => console.log(`[subscription1]: ${num}`));
+const subscription2 = subject$.subscribe((num: number) => console.log(`[subscription2]: ${num}`));
 
-    // observables en cadena permiten solo tener que desuscribirnos de la primera
-    // suscripcion para desuscribirnos de todas
-    subscription1.unsubscribe();
-
-    // subscription2.unsubscribe();
-    // subscription3.unsubscribe();
-
-    console.log('Completado timeout');
-
-}, 6000);
+// const subscription1 = interval$.subscribe((num: number) => console.log(`[subscription1]: ${num}`));
+// const subscription2 = interval$.subscribe((num: number) => console.log(`[subscription2]: ${num}`));
