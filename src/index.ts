@@ -1,14 +1,8 @@
-import { asyncScheduler, interval, fromEvent } from 'rxjs';
-import { debounceTime, map, tap, pluck, distinctUntilChanged, throttleTime, sampleTime, sample, auditTime } from 'rxjs/operators';
+const url = 'https://api.github.com/ussers?per_page=5';
 
-const click$ = fromEvent<MouseEvent>(document, 'click');
+const fetchPromise = fetch(url);
 
-// auditTime: una vez que el observable emite, auditTime cuenta por un intervalo de tiempo
-// cuando concluya, tomara el ultimo valor del observable
-click$
-    .pipe(
-        map(({ x }) => ({ x })),
-        tap(val => console.log('tap', val)),
-        auditTime(2000)
-    )
-    .subscribe(console.log);
+fetchPromise
+    .then(res => res.json())
+    .then(data => console.log('data: ', data))
+    .catch(err => console.warn('error; ', err));
