@@ -1,42 +1,48 @@
-import { ajax, AjaxError } from 'rxjs/ajax';
-import { map, pluck, catchError } from 'rxjs/operators';
-import { from, of } from 'rxjs';
+import { fromEvent } from 'rxjs';
+import { pluck, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { ajax } from 'rxjs/ajax';
 
-const url = 'https://httpbin.org/delay/1';
+const body = document.querySelector('body');
 
-// get: url y headers
-ajax.get(url, { 'Content-Type': 'application/json' });
+const textInput = document.createElement('input');
+const orderList = document.createElement('ol');
 
-// post & put: url, cuerpo y headers
-ajax.post(url, {
-    id: 1,
-    nombre: 'Fernando'
-}, { 
-    'Content-Type': 'application/json',
-    'Mi-Token': 'abc123' 
-});
+body.append(textInput, orderList);
 
-ajax.put(url, {
-    id: 1,
-    nombre: 'Fernando'
-}, { 
-    'Content-Type': 'application/json',
-    'Mi-Token': 'abc123' 
-});
+const input$ = fromEvent<KeyboardEvent>(textInput, 'keyup');
 
-// delete: url y headers
-ajax.delete(url, { 'Content-Type': 'application/json' });
+// problematica y necesidad de un operador de transformacion
+// meta: suscribirnos a cambios en el valor del input y obtener la lista de usuarios
+// de Github que coincidan con ese nombre
+// requerimos realizar una peticion http para hacer esto
+input$
+    .pipe(
+        debounceTime(500),
+        map(event => {
 
-// peticiones con verbos dinamicos y mas granularidad y control en el tipo
-// de peticion que haremos
-ajax({
-    url,
-    method: 'POST',
-    headers: {
-        'mi-token': 'ABC123'
-    },
-    body: {
-        id: 1,
-        nombre: 'Fernando'
-    }
-}).subscribe(console.log);
+            const text: string = event.target['value'];
+
+            // ajax.getJSON devuelve un Observable, por lo que los suscriptores NO tendran
+            // la informacion resuelta, sino un Observable
+            // en otras palabras: este Observable retorna a su vez un Observable
+            return ajax.getJSON(
+                `https://api.github.com/users/${text}`
+            );
+
+        }),
+        distinctUntilChanged()
+    )
+    .subscribe(
+
+        // como el Observable input$ devuelve un Observable, podemos suscribirnos a el
+        // y tenemos que usar operadores en este Observable para poder trabajar con el
+        // los operadores de transformacion nos permiten evitar esta `anidacion de Observables`,
+        // suscribiendonos al Observable anidado para obtener la respuesta que necesitamos e
+        // introducirlas al flujo de informacion corriente
+        obs$ => obs$
+                    .pipe(
+                        pluck('url')
+                    )
+                    .subscribe(console.log)
+
+    );
