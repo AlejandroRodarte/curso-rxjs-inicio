@@ -1,12 +1,21 @@
-import { of, range, asyncScheduler } from 'rxjs';
+import { interval, timer, Observer } from 'rxjs';
 
-// equivalente a of(1, 2, 3, ..., 18, 19, 20)
-// 1: queremos que empiece de -5
-// 20: queremos la SIGUIENTES 10 EMISIONES (hasta 4)
-// asyncScheduler convierte el observable en asincrono
-const src$ = range(-5, 10, asyncScheduler);
+const observer: Observer<number> = {
+    next: val => console.log('next: ', val),
+    error: err => console.log('error: ', err),
+    complete: () => console.log('complete')
+};
 
-// similar a of, es sincrono
+// emitir numeros cada 1000 ms
+const interval$ = interval(1000);
+
+const timer$ = timer(2000);
+
+// interval es asincrono por naturaleza
 console.log('inicio');
-src$.subscribe(console.log);
+interval$.subscribe(observer);
+console.log('fin');
+
+console.log('inicio');
+timer$.subscribe(observer);
 console.log('fin');
