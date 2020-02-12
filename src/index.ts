@@ -1,41 +1,40 @@
-import { range, fromEvent } from 'rxjs';
-import { map, pluck, mapTo } from 'rxjs/operators';
+import { range, from } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
-// map: transforma secuencia de numeros multiplicandolos por 10 y convirtiendo a string
-// el tipado de map indica el tipo de objeto que entra y el tipo de objeto que sale
-range(1, 5)
+// filter: filtra emisiones que llegan a suscriptores por medio de un criterio booleano
+// ademas de recibir el dato que se va a probar, tambien se recibe el indice del elemento que se
+// esta probando
+range(1, 10)
     .pipe(
-        map<number, string>(
-            (num: number) => `El siguiente numero es ${num * 10}`
+        filter(
+            (num: number, index: number) => num % 2 === 1
         )
     )
     .subscribe(console.log);
 
-const keyup$ = fromEvent<KeyboardEvent>(document, 'keyup');
+export interface Personaje {
+    tipo: string;
+    nombre: string;
+}
 
-// usando map para transformar KeyboardEvent a un string del codigo de la tecla presionada
-keyup$
+const personajes: Personaje[] = [
+    {
+        tipo: 'heroe',
+        nombre: 'Batman'
+    },
+    {
+        tipo: 'heroe',
+        nombre: 'Robin'
+    },
+    {
+        tipo: 'villano',
+        nombre: 'Joker'
+    }
+];
+
+// barriendo arreglo de personajes, filtrando solo los personajes que son de tipo `heroe`
+from(personajes)
     .pipe(
-        map<KeyboardEvent, string>(
-            (event: KeyboardEvent) => event.code
-        )
+        filter<Personaje>((personaje: Personaje, index: number) => personaje.tipo === 'heroe')
     )
-    .subscribe((code: string) => console.log('map', code));
-
-// pluck permite extraer una sola propiedad de un objecto
-// se pasa una secuencia de strings como `path` a la propiedad que buscamos obtener
-const keyUpPluck$ = 
-    keyup$
-        .pipe(
-            pluck<KeyboardEvent, string>('target', 'baseURI')
-        )
-        .subscribe((key: string) => console.log('pluck', key));
-
-// mapTo: permite transformar una salida en algo muy especifico, en este caso, en un
-// string estatico que solo emite 'tecla presionada' a los suscriptores
-const keyUpMapTo$ =
-    keyup$
-        .pipe(
-            mapTo<KeyboardEvent, string>('tecla presionada')
-        )
-        .subscribe((val: string) => console.log('mapTo', val));
+    .subscribe(console.log);
