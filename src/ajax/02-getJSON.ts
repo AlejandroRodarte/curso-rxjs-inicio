@@ -4,6 +4,8 @@ import { from, of } from 'rxjs';
 
 const url = 'https://httpbin.org/delay/1';
 
+// getJSON: permite obtener el cuerpo de la respuesta directamente
+// tambien podemos setear cosas como headers
 const obs$ = 
     ajax
         .getJSON(url, {
