@@ -1,5 +1,5 @@
 import { fromEvent, Observable } from 'rxjs';
-import { pluck, debounceTime, distinctUntilChanged, map, mergeAll, mergeMap } from 'rxjs/operators';
+import { pluck, debounceTime, distinctUntilChanged, map, mergeAll, mergeMap, switchMap } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { GithubUser } from './interfaces/github-user.interface';
 import { GithubUsersResponse } from './interfaces/github-users.interface';
@@ -42,6 +42,7 @@ const input$ = fromEvent<KeyboardEvent>(textInput, 'keyup');
 
 // el problema con mergeMap: mergeMap suscribe cuantas emisiones en el Observable original existan
 // si ese Observable hijo al que se suscribe es una peticion http, se puede generar mucha basura
+// switchMap limita a tener solo una suscripcion del Observable hijo
 input$
     .pipe(
 
@@ -51,7 +52,7 @@ input$
 
         distinctUntilChanged<string>(),
 
-        mergeMap<string, Observable<GithubUsersResponse>>((text: string) => ajax.getJSON<GithubUsersResponse>(`https://api.github.com/search/users?q=${text}`)),
+        switchMap<string, Observable<GithubUsersResponse>>((text: string) => ajax.getJSON<GithubUsersResponse>(`https://api.github.com/search/users?q=${text}`)),
 
         pluck<GithubUsersResponse, GithubUser[]>('items')
 
@@ -60,9 +61,11 @@ input$
 
 const url = 'https://httpbin.org/delay/1?arg=';
 
+// switchMap: solo permite una suscripcion a la vez del Observable hijo
+// esto salva recursos al no enviar peticiones http innecesarias
 input$
     .pipe(
         pluck<KeyboardEvent, string>('target', 'value'),
-        mergeMap<string, Observable<unknown>>((text: string) => ajax.getJSON(url + text))
+        switchMap<string, Observable<unknown>>((text: string) => ajax.getJSON(url + text))
     )
     .subscribe(console.log);
