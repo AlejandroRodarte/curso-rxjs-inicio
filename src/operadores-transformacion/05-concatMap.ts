@@ -1,8 +1,8 @@
 import { fromEvent, Observable, interval } from 'rxjs';
 import { pluck, debounceTime, distinctUntilChanged, map, mergeAll, mergeMap, switchMap, take, concatMap } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
-import { GithubUser } from './interfaces/github-user.interface';
-import { GithubUsersResponse } from './interfaces/github-users.interface';
+import { GithubUser } from '../interfaces/github-user.interface';
+import { GithubUsersResponse } from '../interfaces/github-users.interface';
 
 const interval$ = 
     interval(500)
@@ -21,4 +21,3 @@ click$
         )
     )
     .subscribe(console.log);
-
