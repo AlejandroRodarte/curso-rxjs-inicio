@@ -1,23 +1,18 @@
-import { from } from 'rxjs';
-import { map, filter, reduce } from 'rxjs/operators';
+import { interval, Subject } from 'rxjs';
+import { map, filter, reduce, take } from 'rxjs/operators';
 
 /**
- * Ejercicio: 
- * Sume todos los números del arreglo usando un reduce.
- * Debe de filtrar para que sólo números sean procesados
- * La salida debe de ser 32
- * 
- * Tip:
- * isNan() es una función de JavaScript para determinar si es número
- * Usar filter<any>(...) para no tener problemas de tipado.
+ * Ejercicio: Realizar una cuenta regresiva
+ * empezando de 7
  */
 
-const datos = [1, 2, 'foo', 3, 5, 6, 'bar', 7, 8];
+// Salida esperada ===
+// 7
+// 6
+// 5
+// 4
+// 3
+// 2
+// 1
+// 0
 
-from(datos)
-    .pipe(
-        filter<any>(value => typeof value === 'number'),
-        reduce((acc, cv) => acc + cv)
-    )
-    .subscribe(console.log);
-		
